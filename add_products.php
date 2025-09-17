@@ -5,14 +5,25 @@ require_once 'db_config.php'; // Assuming you have a database connection file
 $page_title = "Ebella Management - Add Product";
 $message = '';
 
+// Define product categories
+$product_categories = [
+    'Primer', 'Foundation', 'Setting spray', 'Kajol', 'Maskara', 
+    'Eye Shadow pallate', 'Eye Lash', 'Body Mist', 'Body lotion', 
+    'Body Wash', 'Face Wash', 'face Powder', 'Deo Dorant', 'Brush', 
+    'Concealer', 'Beauty Blender', 'Eye liner', 'Face Mask', 'Body Scrub', 
+    'Makeup Remover', 'hair Brush', 'Serum', 'Lipstick'
+];
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_product'])) {
     try {
         // Get form data
         $product_code = $_POST['product_code'];
+        $product_category = $_POST['product_category'];
         $name = $_POST['name'];
         $description = $_POST['description'];
         $price = $_POST['price'];
+        $purchase_price = $_POST['purchase_price'];
         $stock_quantity = $_POST['stock_quantity'];
         $is_active = isset($_POST['is_active']) ? 1 : 0;
         
@@ -28,9 +39,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_product'])) {
         $check_stmt->close();
         
         // Insert product into database
-        $stmt = $conn->prepare("INSERT INTO products (product_code, name, description, price, stock_quantity, is_active) 
-                               VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("sssdii", $product_code, $name, $description, $price, $stock_quantity, $is_active);
+        $stmt = $conn->prepare("INSERT INTO products (product_code, product_category, name, description, price, purchase_price, stock_quantity, is_active) 
+                               VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("ssssdsii", $product_code, $product_category, $name, $description, $price, $purchase_price, $stock_quantity, $is_active);
         
         if ($stmt->execute()) {
             $product_id = $stmt->insert_id;
@@ -232,43 +243,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_product'])) {
 <body>
     <?php include 'sidebar.php'; ?>
     
-    <nav class="navbar navbar-expand-lg navbar-light">
-        <div class="container-fluid">
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarContent">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link" href="dashboard.php">Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="view_users.php">Users</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="view_products.php">Products</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="add_products.php">Add Product</a>
-                    </li>
-                </ul>
-                <div class="d-flex align-items-center">
-                    <span class="me-3">Welcome, <?php echo $_SESSION["username"]; ?></span>
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown">
-                            <i class="fas fa-user-circle me-1"></i> <?php echo $_SESSION["user_role"]; ?>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Profile</a></li>
-                            <li><a class="dropdown-item" href="#">Settings</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="logout.php">Logout</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </nav>
+    <?php include 'nav.php' ?>
     
     <div class="main-content">
         <div class="container-fluid">
@@ -306,6 +281,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_product'])) {
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
+                                            <label class="form-label">Product Category <span class="text-danger">*</span></label>
+                                            <select class="form-select" name="product_category" required>
+                                                <option value="">Select Category</option>
+                                                <?php foreach ($product_categories as $category): ?>
+                                                    <option value="<?php echo htmlspecialchars($category); ?>"><?php echo htmlspecialchars($category); ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="mb-3">
                                             <label class="form-label">Product Name <span class="text-danger">*</span></label>
                                             <input type="text" class="form-control" name="name" required>
                                         </div>
@@ -329,11 +318,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_product'])) {
                                     </div>
                                     <div class="col-md-4">
                                         <div class="mb-3">
+                                            <label class="form-label">Purchase Price <span class="text-danger">*</span></label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">৳</span>
+                                                <input type="number" class="form-control" name="purchase_price" step="0.01" min="0" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
                                             <label class="form-label">Stock Quantity <span class="text-danger">*</span></label>
                                             <input type="number" class="form-control" name="stock_quantity" min="0" required>
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-12">
                                         <div class="mb-3">
                                             <label class="form-label">Status</label>
                                             <div class="form-check form-switch mt-2">
