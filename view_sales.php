@@ -178,7 +178,7 @@ $page_title = "Ebella Management - Sales Records";
                                 <div class="row">
                                     <div class="col-md-3">
                                         <div class="mb-3">
-                                            <label class="form-label">Search (Sale ID/Customer/Phone)</label>
+                                            <label class="form-label">Search (Sale ID/Customer/Phone/Invoice No)</label>
                                             <input type="text" class="form-control" name="search" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
                                         </div>
                                     </div>
@@ -262,12 +262,14 @@ $page_title = "Ebella Management - Sales Records";
                                         <?php
                                         // Build query with filters
                                         $sql = "SELECT s.sale_id, s.invoice_no, s.sale_date, s.total_price, s.total_profit, 
-                                                s.total_discount, s.total_items, 
-                                                c.username as customer_name, 
+                                                s.total_discount, s.total_items, s.coustomer_name as coustomer_name,
+                                                -- c.username as customer_name, 
                                                 sp.username as sales_person_name
                                                 FROM sales s
                                                 LEFT JOIN users c ON s.customer_id = c.user_id
                                                 LEFT JOIN users sp ON s.sales_person_id = sp.user_id
+                                                LEFT JOIN orders o ON s.sale_id = o.order_id 
+                                                
                                                 WHERE 1=1";
                                         
                                         $params = [];
@@ -275,9 +277,9 @@ $page_title = "Ebella Management - Sales Records";
                                         
                                         if (isset($_GET['search']) && !empty($_GET['search'])) {
                                             $search = "%{$_GET['search']}%";
-                                            $sql .= " AND (s.sale_id LIKE ? OR c.username LIKE ? OR c.phone LIKE ?)";
-                                            array_push($params, $search, $search, $search);
-                                            $types .= "sss";
+                                            $sql .= " AND (s.sale_id LIKE ? OR o.coustomer_name LIKE ? OR o.phone LIKE ? OR s.invoice_no LIKE ?)";
+                                            array_push($params, $search, $search, $search,$search);
+                                            $types .= "ssss";
                                         }
                                         
                                         if (isset($_GET['from_date']) && !empty($_GET['from_date'])) {
@@ -317,7 +319,7 @@ $page_title = "Ebella Management - Sales Records";
                                             <td><?php echo $sale['sale_id']; ?></td>
                                             <td><?php echo htmlspecialchars($sale['invoice_no']); ?></td>
                                             <td><?php echo date('M j, Y h:i A', strtotime($sale['sale_date'])); ?></td>
-                                            <td><?php echo isset($sale['customer_name']) ? htmlspecialchars($sale['customer_name']) : 'N/A'; ?></td>
+                                            <td><?php echo isset($sale['coustomer_name']) ? htmlspecialchars($sale['coustomer_name']) : 'N/A'; ?></td>
                                             <td><?php echo $sale['total_items']; ?></td>
                                             <td><?php echo number_format($sale['total_price'], 2); ?></td>
                                             <td><?php echo number_format($sale['total_profit'], 2); ?></td>
